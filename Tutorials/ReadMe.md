@@ -91,14 +91,17 @@ The standalone project for the Tutorial is isolated from the demo aircraft, in m
 
 Copy the entire DA62 sample folder to a new folder, e.g. from C:\MSFS 2024 SDK\Samples\DevmodeProjects\SimObjects\Aircraft\DA62 to D:\msfs_dev\DA62. 
 
- The project is built via the Dev menu in MSFS 2024. 
+The project is built via the Dev menu in MSFS 2024. 
+
 ![Open DA62 Sample](Instruments/HelloWorldDisplay/images/OpenDA62.png)
 
 If you have not added the TestGauge project, or not to re-add it, do the following:
 Import the TestGauge project's definition into the DA62 project via the import
+
 ![Import Project Definition](Instruments/HelloWorldDisplay/images/ImportGauge.png)
 
 Setup the project via the project Inspector
+
 ![Project Editor](Instruments/HelloWorldDisplay/images/ProjectEditor.png)
 
 ![Project Editor->View->Project Inspector](Instruments/HelloWorldDisplay/images/ProjectInspector.png)
@@ -108,13 +111,16 @@ Note the OutputDir needs to that relative path of ```html_ui\Pages\vCockpit\Inst
 NB You can access this in the Project Inspector by selecting the nested HelloWorldDisplay project in the Project Explorer.
 
 Configure the Gauge project
+
 ![Configure Content-Type to Instruments and Package Order to Instrument patch](Instruments/HelloWorldDisplay/images/Configure.png)
 
 That creates a new folder in the root project with a copy of the gauge project…
+
 ![Embedded Package Location DA62->Packages->bourne-mytestguage](Instruments/HelloWorldDisplay/images/EmbeddedPackageLocation.png)
 
 From here on, it appears that you need to make changes from this location, and not in the isolated gauge project. So be careful about getting out of sync!
 This has made the new gauge available to the aircraft project (DA62) but to wire it into the cockpit the panel.cfg and panel.xml have to be changed. Going to the route of the DA62 and searching for panel.cfg will find 4 copies, two pairs will be in the Packages and PackagesSources folders. Essentially PackageSources builds the Packages folder. So any changes should be made to the files in PackageSources, which the app will then build and place in the respective Packages folders - i.e. ignore the files in the Packages folder when you want to edit stuff. The remaining choices are in Function_Interior and Function_Exterior. For this demo I want to make changes to the cockpit so Interior is the correct choice. 
+
 ```D:\msfs_dev\DA62\PackageSources\SimObjects\Airplanes\DA62_SDK\attachments\asobo\Function_Interior\panel```
 
 Since we're going to hijack the Speed_Display, look for the ini entry containing the texture or htmlguage00 referencing Speed_Display. The Tutorial says it's VCockpit04, not for me. Change the htmlguage00 to point the new gauge…
@@ -130,6 +136,7 @@ htmlgauge00 = HelloWorldDisplay/helloworld.html, 0, 0, 400, 512
 For now you want the size to remain the same, as we're not changing the 3D Mesh of the cockpit.
 
 Repeat the search for panel.xml, again choosing the one from PackageSources rather than Packages.
+
 ```D:\msfs_dev\DA62\PackageSources\SimObjects\Airplanes\DA62_SDK\common\panel\panel.xml```
 
 ```xml
@@ -161,6 +168,7 @@ You can confirm this by using the Coherent GT Debugger (GT), which is in the MSF
 NB If the ID for your gauge is missing and/or all the screen have gone blank, then you probably have an error in the config OR an error in you JS. You can use the GT debugger to check the console for errors. 
 
 Select the gauge link to view the HTML…
+
 ![GT Html View](Instruments/HelloWorldDisplay/images/GTHtml.png)
 
 Or Console to check for diagnostics or errors. 
@@ -170,6 +178,7 @@ Or Console to check for diagnostics or errors.
 The debugger can be used to set breakpoints. NB If you fail to correctly initialize the JS then the debugger may not attach which can be confusing.
 
 You can make hot changes via the GT tool, but there are not persisted…
+
 ![Hot changing text of html](Instruments/HelloWorldDisplay/images/GTDynamicChange.png)
 
 ![Display showing Dynamic change](Instruments/HelloWorldDisplay/images/DynamicChangeResult.png)
@@ -191,4 +200,4 @@ So once the gauge has been imported then it effectively ignore any changes to th
 
 You do not need to 'End Flight' to rebuild, but you do need to make changes to the now embedded project
 
-NB Also note the Tutorial uses the Electical system to test controlling the display. This has fundamentally changed in MSFS 2024, so the tutorial is out of date. 
+NB Also note the Tutorial uses the Electrical system to test controlling the display. This has fundamentally changed in MSFS 2024, so the tutorial is out of date. 
