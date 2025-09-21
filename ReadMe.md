@@ -14,6 +14,8 @@ If you're also exploring MSFS2024 development, feel free to read, adapt, and exp
 ```
 Tutorials/
   ReadMe.md        <- Full "Tutorial of the Tutorial" walkthrough (detailed)
+  FSAvionics/
+    Readme.md      <- Avionics (React/FSComponent) tutorial companion
   Instruments/
     HelloWorldDisplay/
       helloworld.html
@@ -26,6 +28,12 @@ The root `README.md` (this file) gives the overview; the deeper tutorial lives i
 
 ---
 
+# Tutorials
+Additional support for those following the following MSFS Tutorial
+ * Creating and Embedding a Custom HTML/JS Instrument (HelloWorld)
+ * MSFS 2024 Avionics Development
+---
+
 ## Summary: Creating and Embedding a Custom HTML/JS Instrument (HelloWorld)
 
 The detailed narrative is in `Tutorials/ReadMe.md`; here’s the concise version of what was done and what was fixed.
@@ -33,6 +41,11 @@ The detailed narrative is in `Tutorials/ReadMe.md`; here’s the concise version
 ### Goal
 Create a minimal HTML/JS/CSS instrument (“Hello World”) and integrate it into the DA62 SDK sample aircraft without modifying meshes—just swapping one existing display.
 
+
+### When to Read It
+After you are comfortable with the pure HTML/JS HelloWorld example and want to move to the structured FSComponent/React style used by modern MSFS avionics.
+
+---
 
 ### Common Pitfalls
 | Issue | Symptom | Fix |
@@ -43,6 +56,20 @@ Create a minimal HTML/JS/CSS instrument (“Hello World”) and integrate it int
 
 ---
 
+## Avionics (React/FSComponent) Helper
+
+See `Tutorials/FSAvionics/Readme.md` for a companion to the MSFS 2024 Avionics (React-based) development tutorial.
+
+### What it Adds / Clarifies
+- Updated `tsconfig.json` guidance (augment defaults instead of blind replacement).
+- Mapping from the plain HTML gauge workflow to a React/FSComponent instrument (creating the project, naming, folder placement).
+- Correct panel integration examples (replacing the Speed Backup display) for `panel.cfg` and `panel.xml`.
+- Use of `type VNode` import pattern to satisfy TypeScript + SDK typings.
+- Recommended deploy script example (copy build output into the aircraft `PackageSources` tree) and reminder that import embeds a copy.
+- Order-of-operations warning: finish styling (CSS) before attempting the first in-sim build so assets resolve correctly.
+- Centering UI content with flex layout for a cleaner default appearance.
+
+---
 
 ## License
 
