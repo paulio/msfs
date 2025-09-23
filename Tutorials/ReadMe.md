@@ -86,7 +86,7 @@ D:\msfs_dev\TestGauge\PackageSources\Copys\mytestgauge\HelloWorldDisplay\hellowo
 ```
 
 ## Configuring and Building the Project
-The standalone project for the Tutorial is isolated from the demo aircraft, in my case it is D:\msfs_dev\TestGauge. This is the source project that is built and then included into the aircraft example, the aircraft in this case is D:\msfs_dev\DA62. NB There are two samples that reference DA62, once from the sample pack (DA62 Mod) and one that is downloaded directly from the Dev Help menu (DA62), you want the latter. 
+The standalone project for the Tutorial is isolated from the demo aircraft, in my case it is D:\msfs_dev\TestGauge. This is the source project that is built and then included into the aircraft example, the aircraft in this case is D:\msfs_dev\DA62. NB There are two samples that reference DA62, one from the sample pack (DA62 Mod) and one that is downloaded directly from the Dev Help menu (DA62), you want the latter. 
 ![DA62 Sample Download Help->Samples>DA62 Sample](Instruments/HelloWorldDisplay/images/DA62SampleDownload.png)
 
 Copy the entire DA62 sample folder to a new folder, e.g. from C:\MSFS 2024 SDK\Samples\DevmodeProjects\SimObjects\Aircraft\DA62 to D:\msfs_dev\DA62. 
@@ -95,7 +95,7 @@ The project is built via the Dev menu in MSFS 2024.
 
 ![Open DA62 Sample](Instruments/HelloWorldDisplay/images/OpenDA62.png)
 
-If you have not added the TestGauge project, or not to re-add it, do the following:
+If you have not added the TestGauge project, or need to re-add it, do the following:
 Import the TestGauge project's definition into the DA62 project via the import
 
 ![Import Project Definition](Instruments/HelloWorldDisplay/images/ImportGauge.png)
@@ -119,7 +119,7 @@ That creates a new folder in the root project with a copy of the gauge projectâ€
 ![Embedded Package Location DA62->Packages->bourne-mytestguage](Instruments/HelloWorldDisplay/images/EmbeddedPackageLocation.png)
 
 From here on, it appears that you need to make changes from this location, and not in the isolated gauge project. So be careful about getting out of sync!
-This has made the new gauge available to the aircraft project (DA62) but to wire it into the cockpit the panel.cfg and panel.xml have to be changed. Going to the route of the DA62 and searching for panel.cfg will find 4 copies, two pairs will be in the Packages and PackagesSources folders. Essentially PackageSources builds the Packages folder. So any changes should be made to the files in PackageSources, which the app will then build and place in the respective Packages folders - i.e. ignore the files in the Packages folder when you want to edit stuff. The remaining choices are in Function_Interior and Function_Exterior. For this demo I want to make changes to the cockpit so Interior is the correct choice. 
+This has made the new gauge available to the aircraft project (DA62) but to wire it into the cockpit the panel.cfg and panel.xml have to be changed. Going to the root of the DA62 and searching for panel.cfg will find 4 copies, two pairs will be in the Packages and PackagesSources folders. Essentially PackageSources builds the Packages folder. So any changes should be made to the files in PackageSources, which the app will then build and place in the respective Packages folders - i.e. ignore the files in the Packages folder when you want to edit stuff. The remaining choices are in Function_Interior and Function_Exterior. For this demo I want to make changes to the cockpit so Interior is the correct choice. 
 
 ```D:\msfs_dev\DA62\PackageSources\SimObjects\Airplanes\DA62_SDK\attachments\asobo\Function_Interior\panel```
 
