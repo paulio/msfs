@@ -177,7 +177,7 @@ Or Console to check for diagnostics or errors.
 
 The debugger can be used to set breakpoints. NB If you fail to correctly initialize the JS then the debugger may not attach which can be confusing.
 
-You can make hot changes via the GT tool, but there are not persisted…
+You can make hot changes via the GT tool, but they are not persisted…
 
 ![Hot changing text of html](Instruments/HelloWorldDisplay/images/GTDynamicChange.png)
 
@@ -196,7 +196,7 @@ Now in MSFS Dev, open the DA62 project and select the Gauge sub project. In the 
 
 ![Result is A change in DA62](Instruments/HelloWorldDisplay/images/ChangeInDA62.png)
 
-So once the gauge has been imported then it effectively ignore any changes to the original project. Beware!
+So once the gauge has been imported then it effectively ignores any changes to the original project. Beware!
 
 You do not need to 'End Flight' to rebuild, but you do need to make changes to the now embedded project
 
