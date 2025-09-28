@@ -25,7 +25,7 @@ Tutorials/
 LICENSE
 ```
 
-The root `README.md` (this file) gives the overview; the deeper tutorial lives in `Tutorials/ReadMe.md`.
+The root [`README.md`](README.md) (this file) gives the overview; the deeper tutorial lives in [`Tutorials/ReadMe.md`](Tutorials/ReadMe.md).
 
 ---
 
@@ -59,10 +59,10 @@ After you are comfortable with the pure HTML/JS HelloWorld example and want to m
 
 ## Avionics (React/FSComponent) Helper
 
-See `Tutorials/FSAvionics/Readme.md` for a companion to the MSFS 2024 Avionics (React-based) development tutorial.
+See [`Tutorials/FSAvionics/Readme.md`](Tutorials/FSAvionics/Readme.md) for a companion to the MSFS 2024 Avionics (React-based) development tutorial.
 
 ### What it Adds / Clarifies
-- Updated `tsconfig.json` guidance (augment defaults instead of blind replacement).
+- Updated [`tsconfig.json`](Tutorials/FSAvionics/tsconfig.json) guidance (augment defaults instead of blind replacement).
 - Mapping from the plain HTML gauge workflow to a React/FSComponent instrument (creating the project, naming, folder placement).
 - Correct panel integration examples (replacing the Speed Backup display) for `panel.cfg` and `panel.xml`.
 - Use of `type VNode` import pattern to satisfy TypeScript + SDK typings.
@@ -72,13 +72,13 @@ See `Tutorials/FSAvionics/Readme.md` for a companion to the MSFS 2024 Avionics (
 
 ### Web Host Preview Utility (Early Prototype)
 
-Located at `Tutorials/FSAvionics/web-host` — a tiny Express server that lets you open `MyInstrument.html` plus the Rollup-built JS/CSS in a normal browser for fast layout & styling checks (no real SimVars/Coherent). Usage: from repo root `npm run build`, then inside `web-host` run `npm install && npm start` and visit http://localhost:5173. Early prototype: surfaces size, serves static assets, injects simple emulation stubs; not a simulator substitute. Licensed under MIT (see `LICENSE`).
+Located at [`Tutorials/FSAvionics/web-host`](Tutorials/FSAvionics/web-host) — a tiny Express server that lets you open [`MyInstrument.html`](Tutorials/FSAvionics/MyInstrument.html) plus the Rollup-built JS/CSS in a normal browser for fast layout & styling checks (no real SimVars/Coherent). Usage: from repo root `npm run build`, then inside `web-host` run `npm install && npm start` and visit http://localhost:5173. Early prototype: surfaces size, serves static assets, injects simple emulation stubs; not a simulator substitute. Licensed under MIT (see [`LICENSE`](LICENSE)).
 
 ---
 
 ## License
 
-See `LICENSE` for repository licensing (does not supersede Microsoft / Asobo SDK terms).  
+See [`LICENSE`](LICENSE) for repository licensing (does not supersede Microsoft / Asobo SDK terms).  
 Respect Microsoft Flight Simulator EULA and SDK redistribution rules for any derived content.
 
 ---
@@ -92,7 +92,7 @@ This is primarily a personal learning log. Suggestions or issue reports are welc
 ## Where to Go Next
 
 Read the full expanded walkthrough in:  
-`Tutorials/ReadMe.md`
+[`Tutorials/ReadMe.md`](Tutorials/ReadMe.md)
 
 
 Fly safe...
