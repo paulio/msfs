@@ -16,6 +16,7 @@ Tutorials/
   ReadMe.md        <- Full "Tutorial of the Tutorial" walkthrough (detailed)
   FSAvionics/
     Readme.md      <- Avionics (React/FSComponent) tutorial companion
+    web-host/       <- Minimal Express preview server (early prototype)
   Instruments/
     HelloWorldDisplay/
       helloworld.html
@@ -71,14 +72,7 @@ See `Tutorials/FSAvionics/Readme.md` for a companion to the MSFS 2024 Avionics (
 
 ### Web Host Preview Utility (Early Prototype)
 
-A lightweight Express-based local host is included at `Tutorials/FSAvionics/web-host` to let you preview `MyInstrument.html` (and the Rollup-built JS/CSS) in a normal browser without launching MSFS. It:
-
-- Serves the compiled instrument script and stylesheet under MSFS-like paths (e.g. `/Pages/VCockpit/Instruments/...`).
-- Injects simple emulator scripts (placeholders) so basic layout can render even when SimVar APIs aren’t present.
-- Wraps the fragment in a fixed-size (400x512) frame matching the panel config to validate sizing/overflow.
-- Provides quick iteration: `npm run build` (root), then from `web-host/` run `npm install && npm start` and open http://localhost:5173.
-
-Limitations: Not a full simulator context (no real SimVars, no Coherent, timing differences). Use it only for rapid styling/layout iteration. Feedback & suggestions welcome—this host is intentionally minimal and may change.
+Located at `Tutorials/FSAvionics/web-host` — a tiny Express server that lets you open `MyInstrument.html` plus the Rollup-built JS/CSS in a normal browser for fast layout & styling checks (no real SimVars/Coherent). Usage: from repo root `npm run build`, then inside `web-host` run `npm install && npm start` and visit http://localhost:5173. Early prototype: surfaces size, serves static assets, injects simple emulation stubs; not a simulator substitute. Licensed under MIT (see `LICENSE`).
 
 ---
 
