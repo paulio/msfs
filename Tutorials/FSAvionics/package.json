@@ -1,0 +1,27 @@
+{
+  "name": "my-avionics",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx rollup -c",
+    "deploy": "xcopy build\\* \"D:\\msfs_dev\\DA62\\PackageSources\\Copys\\myreactinstrument\\myreactinstrument\" /E /Y /I && copy MyInstrument.html \"D:\\msfs_dev\\DA62\\PackageSources\\Copys\\myreactinstrument\\myreactinstrument\\\" /Y",
+    "host:start": "npm --prefix web-host run start",
+    "host:dev": "npm --prefix web-host run dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@microsoft/msfs-sdk": "^2.2.3",
+    "@microsoft/msfs-types": "^1.14.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "rollup": "^2.79.2",
+    "rollup-plugin-import-css": "^4.0.2",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.2"
+  }
+}
