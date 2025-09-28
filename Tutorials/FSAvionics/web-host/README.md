@@ -47,3 +47,6 @@ If you later rename `MyInstrument.html`, change the `instrumentHtml` path in `sr
 
 ## Notes
 This host does not replicate the MSFS instrument runtime environment (e.g., SimVars, Coherent calls). You may need to mock those if you add references. For quick static layout inspection it's sufficient.
+
+## License
+This web host component is distributed under the repository's root MIT License. See the top-level `LICENSE` file for full terms.
