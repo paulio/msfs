@@ -1,0 +1,82 @@
+############################################################
+# Avionics / Node / TypeScript project ignore rules
+############################################################
+
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Local npm cache or stray folders (found Tutorials/FSAvionics/npm/)
+npm/
+**/npm/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# PIDs / diagnostics
+*.pid
+*.seed
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Build / distribution outputs
+build/
+**/build/
+dist/
+**/dist/
+
+# Rollup / bundler caches
+.rollup.cache/
+**/.rollup.cache/
+
+# Generic caches & temp
+.cache/
+.parcel-cache/
+.temp/
+.tmp/
+temp/
+tmp/
+
+# Coverage reports
+coverage/
+**/coverage/
+
+# Environment variable files
+.env
+.env.*.local
+*.env.local
+*.env.test
+*.env.production
+
+# OS / editor clutter
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE settings (uncomment if you want to version workspace settings)
+.vscode/
+.idea/
+*.iml
+
+# Archives / packaged artifacts
+*.tgz
+*.zip
+
+# Optional: declaration outputs (commented out by default so they are kept)
+# *.d.ts
+# *.d.ts.map
+
+# Avoid committing lockfiles other than npm's package-lock.json if you choose one manager
+# yarn.lock
+# pnpm-lock.yaml
+
+############################################################
+# End of file
+############################################################
