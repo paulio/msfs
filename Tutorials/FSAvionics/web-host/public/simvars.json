@@ -1,0 +1,35 @@
+{
+  "intervalMs": 1000,
+  "variables": [
+    {
+      "name": "AIRSPEED INDICATED",
+      "unit": "knots",
+      "initial": 110,
+      "randomWalk": { "min": 60, "max": 160, "step": 1.2 }
+    },
+    {
+      "name": "FUEL TOTAL QUANTITY",
+      "unit": "gallons",
+      "initial": 40,
+      "decrement": 0.01
+    },
+    {
+      "name": "FUEL TOTAL CAPACITY",
+      "unit": "gallons",
+      "initial": 50
+    },
+    {
+      "name": "FLAPS HANDLE INDEX",
+      "unit": "number",
+      "initial": 0,
+      "cycle": { "count": 4, "probability": 0.01 }
+    },
+    {
+      "name": "TRAILING EDGE FLAPS LEFT PERCENT",
+      "unit": "percent",
+      "initial": 0,
+      "derivedFrom": "FLAPS HANDLE INDEX",
+      "formula": "(base/3)*100"
+    }
+  ]
+}
