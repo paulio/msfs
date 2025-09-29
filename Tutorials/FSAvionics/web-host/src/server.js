@@ -3,51 +3,111 @@ import compression from 'compression';
 import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Root of main project (two levels up from web-host/src)
+const root = path.resolve(__dirname, '..', '..');
+
+// --------------------------- Unified Instrument Config ----------------------
+import fsPromises from 'fs/promises';
+
+const DEFAULT_CONFIG = { name: 'MyInstrument', width: 400, height: 512 };
+
+function parseArgs() {
+  const out = {};
+  const argv = process.argv.slice(2);
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a.startsWith('--')) {
+      const [k, v] = a.split('=', 2);
+      const key = k.replace(/^--/, '');
+      if (v !== undefined) {
+        out[key] = v;
+      } else if (i + 1 < argv.length && !argv[i + 1].startsWith('-')) {
+        out[key] = argv[++i];
+      } else {
+        out[key] = true;
+      }
+    } else if (a === '-i') {
+      out.instrument = argv[++i];
+    } else if (a === '-w') {
+      out.width = argv[++i];
+    } else if (a === '-h') {
+      out.height = argv[++i];
+    } else if (a === '-c') {
+      out.config = argv[++i];
+    }
+  }
+  return out;
+}
+
+function safeInt(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : fallback;
+}
+
+function sanitizeName(name) {
+  let out = (name || '').trim().replace(/[^A-Za-z0-9_-]/g, '');
+  if (!out) out = DEFAULT_CONFIG.name;
+  return out;
+}
+
+function loadFileJSON(filePath) {
+  try {
+    if (filePath && fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf8');
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.warn('[InstrumentConfig] Failed to read JSON config', filePath, err.message);
+  }
+  return {};
+}
+
+function resolveConfig() {
+  const args = parseArgs();
+  const cfg = { ...DEFAULT_CONFIG };
+
+  const configPath = args.config || process.env.INSTRUMENT_CONFIG || path.join(root, 'instrument.config.json');
+  const fileCfg = loadFileJSON(configPath);
+  if (fileCfg.name) cfg.name = fileCfg.name;
+  if (fileCfg.width) cfg.width = safeInt(fileCfg.width, cfg.width);
+  if (fileCfg.height) cfg.height = safeInt(fileCfg.height, cfg.height);
+
+  if (process.env.INSTRUMENT_NAME) cfg.name = process.env.INSTRUMENT_NAME;
+  if (process.env.INSTRUMENT_WIDTH) cfg.width = safeInt(process.env.INSTRUMENT_WIDTH, cfg.width);
+  if (process.env.INSTRUMENT_HEIGHT) cfg.height = safeInt(process.env.INSTRUMENT_HEIGHT, cfg.height);
+
+  if (args.instrument) cfg.name = args.instrument;
+  if (args.width) cfg.width = safeInt(args.width, cfg.width);
+  if (args.height) cfg.height = safeInt(args.height, cfg.height);
+
+  cfg.name = sanitizeName(cfg.name);
+
+  return {
+    name: cfg.name,
+    width: cfg.width,
+    height: cfg.height,
+    sourceFile: fs.existsSync(configPath) ? configPath : null
+  };
+}
+
+const instrumentConfig = resolveConfig();
+const instrumentName = instrumentConfig.name;
+const INSTRUMENT_WIDTH = instrumentConfig.width;
+const INSTRUMENT_HEIGHT = instrumentConfig.height;
+
+const buildDir = path.join(root, 'build');
+const instrumentHtml = path.join(root, `${instrumentName}.html`);
 
 const app = express();
 const PORT = process.env.PORT || 5173;
 
 app.use(compression());
 app.use(morgan('dev'));
-
-// --- Instrument / Component name resolution ---------------------------------
-// Allow the instrument (component) base name to be provided via:
-//  1. Environment variable: INSTRUMENT_NAME
-//  2. CLI flag: --instrument=Name
-//  3. CLI flag pair: -i Name
-// Falls back to 'MyInstrument' for backwards compatibility.
-function resolveInstrumentName() {
-  let provided = process.env.INSTRUMENT_NAME;
-  if (!provided) {
-    const arg = process.argv.slice(2).find(a => a.startsWith('--instrument='));
-    if (arg) provided = arg.split('=')[1];
-  }
-  if (!provided) {
-    const iIndex = process.argv.indexOf('-i');
-    if (iIndex !== -1 && process.argv[iIndex + 1]) {
-      provided = process.argv[iIndex + 1];
-    }
-  }
-  provided = (provided || 'MyInstrument').trim();
-  // Sanitize: only allow letters, numbers, dash and underscore to avoid path issues
-  provided = provided.replace(/[^A-Za-z0-9_-]/g, '');
-  if (!provided) provided = 'MyInstrument';
-  return provided;
-}
-
-const instrumentName = resolveInstrumentName();
-
-// Root of main project (two levels up from web-host/src)
-const root = path.resolve(__dirname, '..', '..');
-const buildDir = path.join(root, 'build');
-// The HTML fragment/file expected to exist at the project root
-const instrumentHtml = path.join(root, `${instrumentName}.html`);
-
-// Helper to check for existence (lazy, when needed) without crashing if missing
-import fsPromises from 'fs/promises';
 
 // Serve build assets (JS/CSS) under /static
 app.use('/static', express.static(buildDir));
@@ -71,10 +131,7 @@ app.get(`/${instrumentName}.css`, (_req, res) => {
 // Optionally expose the whole build directory under the VCockpit instrumentation root
 app.use(`/Pages/VCockpit/Instruments/${instrumentName}`, express.static(buildDir));
 
-// Centralized instrument dimensions (height x width = 512 x 400)
-// Adjust here if you need a different fixed size; keeping naming explicit.
-const INSTRUMENT_WIDTH = 400;   // px
-const INSTRUMENT_HEIGHT = 512;  // px
+// Dimensions now come from config; retained comments for clarity.
 
 async function sendInstrument(res) {
   // Inject loader script tag before closing body or at end of file
@@ -108,7 +165,7 @@ async function sendInstrument(res) {
   const diagnosticsScript = `<script>(function(){function enforce(tag){if(!tag)return;tag.style.width='${INSTRUMENT_WIDTH}px';tag.style.height='${INSTRUMENT_HEIGHT}px';tag.style.setProperty('width','${INSTRUMENT_WIDTH}px','important');tag.style.setProperty('height','${INSTRUMENT_HEIGHT}px','important');}
   function log(){var c=document.getElementById('InstrumentContent');if(c){var r=c.getBoundingClientRect();console.info('[InstrumentHost] InstrumentContent size',r.width+'x'+r.height);if(Math.round(r.height)!==${INSTRUMENT_HEIGHT}||Math.round(r.width)!==${INSTRUMENT_WIDTH}){console.warn('[InstrumentHost] correcting to ${INSTRUMENT_WIDTH}x${INSTRUMENT_HEIGHT}');enforce(c);setTimeout(log,100);return;}}}
   window.addEventListener('load',()=>{log();var c=document.getElementById('InstrumentContent');if(c){var mo=new MutationObserver(()=>{var r=c.getBoundingClientRect();if(Math.round(r.height)!==${INSTRUMENT_HEIGHT}||Math.round(r.width)!==${INSTRUMENT_WIDTH}){enforce(c);} });mo.observe(c,{attributes:true,attributeFilter:['style','class']});}});})();</script>`;
-  const out = `<!DOCTYPE html>\n<html><head><meta charset='utf-8'><title>MyInstrument Host</title><style>${frameStyles}</style></head><body><div id='__instrument_frame'><div id='__instrument_host'></div>${data}</div>${loaderTag}${diagnosticsScript}</body></html>`;
+  const out = `<!DOCTYPE html>\n<html><head><meta charset='utf-8'><title>${instrumentName} Host</title><style>${frameStyles}</style></head><body><div id='__instrument_frame'><div id='__instrument_host'></div>${data}</div>${loaderTag}${diagnosticsScript}</body></html>`;
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.send(out);
   } catch (err) {
@@ -125,6 +182,12 @@ app.get('*', (_req, res) => sendInstrument(res));
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`${instrumentName} host running on http://localhost:${PORT}`);
   console.log(`Instrument HTML: ${instrumentHtml}`);
+  console.log(`Dimensions: ${INSTRUMENT_WIDTH}x${INSTRUMENT_HEIGHT}`);
+  if (instrumentConfig.sourceFile) {
+    console.log(`Config file: ${instrumentConfig.sourceFile}`);
+  } else {
+    console.log('Config file: (none found, using defaults / overrides)');
+  }
   console.log(`JS path: /Pages/VCockpit/Instruments/${instrumentName}/${instrumentName}.js`);
 });
 
