@@ -13,10 +13,41 @@ const PORT = process.env.PORT || 5173;
 app.use(compression());
 app.use(morgan('dev'));
 
-// Root of main project
+// --- Instrument / Component name resolution ---------------------------------
+// Allow the instrument (component) base name to be provided via:
+//  1. Environment variable: INSTRUMENT_NAME
+//  2. CLI flag: --instrument=Name
+//  3. CLI flag pair: -i Name
+// Falls back to 'MyInstrument' for backwards compatibility.
+function resolveInstrumentName() {
+  let provided = process.env.INSTRUMENT_NAME;
+  if (!provided) {
+    const arg = process.argv.slice(2).find(a => a.startsWith('--instrument='));
+    if (arg) provided = arg.split('=')[1];
+  }
+  if (!provided) {
+    const iIndex = process.argv.indexOf('-i');
+    if (iIndex !== -1 && process.argv[iIndex + 1]) {
+      provided = process.argv[iIndex + 1];
+    }
+  }
+  provided = (provided || 'MyInstrument').trim();
+  // Sanitize: only allow letters, numbers, dash and underscore to avoid path issues
+  provided = provided.replace(/[^A-Za-z0-9_-]/g, '');
+  if (!provided) provided = 'MyInstrument';
+  return provided;
+}
+
+const instrumentName = resolveInstrumentName();
+
+// Root of main project (two levels up from web-host/src)
 const root = path.resolve(__dirname, '..', '..');
 const buildDir = path.join(root, 'build');
-const instrumentHtml = path.join(root, 'MyInstrument.html');
+// The HTML fragment/file expected to exist at the project root
+const instrumentHtml = path.join(root, `${instrumentName}.html`);
+
+// Helper to check for existence (lazy, when needed) without crashing if missing
+import fsPromises from 'fs/promises';
 
 // Serve build assets (JS/CSS) under /static
 app.use('/static', express.static(buildDir));
@@ -26,33 +57,39 @@ const publicDir = path.join(__dirname, '..', 'public');
 app.use('/_public', express.static(publicDir));
 
 // MSFS-like virtual path mapping for instrument JS
-// e.g. /Pages/VCockpit/Instruments/MyInstrument/MyInstrument.js
-app.get('/Pages/VCockpit/Instruments/MyInstrument/MyInstrument.js', (_req, res) => {
-  res.sendFile(path.join(buildDir, 'MyInstrument.js'));
+// e.g. /Pages/VCockpit/Instruments/<Instrument>/<Instrument>.js
+app.get(`/Pages/VCockpit/Instruments/${instrumentName}/${instrumentName}.js`, (_req, res) => {
+  res.sendFile(path.join(buildDir, `${instrumentName}.js`));
 });
 
 // Also expose the stylesheet at root path used by original fragment
-app.get('/MyInstrument.css', (_req, res) => {
+app.get(`/${instrumentName}.css`, (_req, res) => {
   res.type('text/css');
-  res.sendFile(path.join(buildDir, 'MyInstrument.css'));
+  res.sendFile(path.join(buildDir, `${instrumentName}.css`));
 });
 
 // Optionally expose the whole build directory under the VCockpit instrumentation root
-app.use('/Pages/VCockpit/Instruments/MyInstrument', express.static(buildDir));
+app.use(`/Pages/VCockpit/Instruments/${instrumentName}`, express.static(buildDir));
 
 // Centralized instrument dimensions (height x width = 512 x 400)
 // Adjust here if you need a different fixed size; keeping naming explicit.
 const INSTRUMENT_WIDTH = 400;   // px
 const INSTRUMENT_HEIGHT = 512;  // px
 
-function sendInstrument(res) {
+async function sendInstrument(res) {
   // Inject loader script tag before closing body or at end of file
-  import('fs').then(fs => {
-    fs.readFile(instrumentHtml, 'utf8', (err, data) => {
-      if (err) {
-        res.status(500).send('Error loading instrument');
-        return;
-      }
+  try {
+    // Attempt to read the instrument html; if missing, provide a helpful message
+    let data;
+    try {
+      data = await fsPromises.readFile(instrumentHtml, 'utf8');
+    } catch (e) {
+      data = `<div style="padding:1rem;color:#ddd;font:14px/1.4 Segoe UI, sans-serif;">` +
+              `<h2 style="margin-top:0;">Missing instrument HTML</h2>` +
+              `<p>Expected file <code>${instrumentName}.html</code> at: <pre style="white-space:pre-wrap;">${instrumentHtml}</pre></p>` +
+              `<p>Create this file (e.g. by copying your existing fragment) and restart or cause a reload.</p>` +
+              `</div>`;
+    }
       const injection = [
         '<script src="/_public/coherent-sync-emulator.js"></script>',
         '<script src="/_public/base-instrument-emulator.js"></script>',
@@ -74,8 +111,10 @@ function sendInstrument(res) {
   const out = `<!DOCTYPE html>\n<html><head><meta charset='utf-8'><title>MyInstrument Host</title><style>${frameStyles}</style></head><body><div id='__instrument_frame'><div id='__instrument_host'></div>${data}</div>${loaderTag}${diagnosticsScript}</body></html>`;
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.send(out);
-    });
-  });
+  } catch (err) {
+    console.error('Error preparing instrument output:', err);
+    res.status(500).send('Error loading instrument');
+  }
 }
 
 app.get('/', (_req, res) => sendInstrument(res));
@@ -84,7 +123,9 @@ app.get('/', (_req, res) => sendInstrument(res));
 app.get('*', (_req, res) => sendInstrument(res));
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`MyInstrument host running on http://localhost:${PORT}`);
+  console.log(`${instrumentName} host running on http://localhost:${PORT}`);
+  console.log(`Instrument HTML: ${instrumentHtml}`);
+  console.log(`JS path: /Pages/VCockpit/Instruments/${instrumentName}/${instrumentName}.js`);
 });
 
 server.on('error', (err) => {
