@@ -43,38 +43,88 @@
     return v;
   }
 
-  // Seed a few values your instrument reads.
-  function seedIfAbsent(name, unit, init){
-    const key = name.toUpperCase();
-    if (!_store.has(key)){
-      _store.set(key, { value: init, unit });
+  // --- Config-driven variable seeding & evolution ---------------------------
+  // A JSON file (simvars.json) can define variables and behaviour. Example:
+  // { intervalMs: 1000, variables: [{ name, unit, initial, randomWalk:{min,max,step}, decrement, cycle:{count,probability}, derivedFrom, formula }] }
+  // The file is optional; if missing we fallback to defaults.
+
+  async function loadConfig(){
+    try {
+      const res = await fetch('/_public/simvars.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      return await res.json();
+    } catch (e) {
+      console.warn('[SimVarEmu] simvars.json not found or invalid, using baked defaults.', e);
+      return {
+        intervalMs: 1000,
+        variables: [
+          { name: 'AIRSPEED INDICATED', unit: 'knots', initial: 110, randomWalk:{ min:60, max:160, step:1.2 } },
+          { name: 'FUEL TOTAL QUANTITY', unit: 'gallons', initial: 40, decrement: 0.01 },
+            { name: 'FUEL TOTAL CAPACITY', unit: 'gallons', initial: 50 },
+          { name: 'FLAPS HANDLE INDEX', unit: 'number', initial: 0, cycle:{ count:4, probability:0.01 } },
+          { name: 'TRAILING EDGE FLAPS LEFT PERCENT', unit: 'percent', initial: 0, derivedFrom: 'FLAPS HANDLE INDEX', formula: '(base/3)*100' }
+        ]
+      };
     }
   }
 
-  // Known variables (subset). Extend as needed.
-  seedIfAbsent('AIRSPEED INDICATED', 'knots', 110);
-  seedIfAbsent('FUEL TOTAL QUANTITY', 'gallons', 40); // current fuel
-  seedIfAbsent('FUEL TOTAL CAPACITY', 'gallons', 50); // tank capacity
-  seedIfAbsent('FLAPS HANDLE INDEX', 'number', 0);
-  seedIfAbsent('TRAILING EDGE FLAPS LEFT PERCENT', 'percent', 0);
-
-  // Periodic evolution of dynamic vars.
-  setInterval(() => {
-    const air = _store.get('AIRSPEED INDICATED');
-    air.value = randomWalk(air.value, 60, 160, 1.2);
-
-    // Simulate slow burn of fuel quantity.
-    const fuel = _store.get('FUEL TOTAL QUANTITY');
-    fuel.value = Math.max(0, fuel.value - 0.01); // ~1 unit per 100s
-
-    // Flaps: occasionally move.
-    if (Math.random() < 0.01) {
-      const flaps = _store.get('FLAPS HANDLE INDEX');
-      flaps.value = (flaps.value + 1) % 4; // cycle 0-3
-      const flapsPct = _store.get('TRAILING EDGE FLAPS LEFT PERCENT');
-      flapsPct.value = (flaps.value / 3) * 100;
+  function seedVariable(v){
+    const key = v.name.toUpperCase();
+    if (!_store.has(key)){
+      _store.set(key, { value: v.initial ?? 0, unit: v.unit || '' });
     }
-  }, 1000); // 1 Hz update
+  }
+
+  function evaluateFormula(formula, context){
+    try {
+      // Very constrained eval: replace allowed identifiers then use Function.
+      // context = { base, value }
+      const fn = new Function('base','value',`return (${formula});`); // eslint-disable-line no-new-func
+      return fn(context.base, context.value);
+    } catch (e) {
+      console.warn('[SimVarEmu] Formula error', formula, e);
+      return 0;
+    }
+  }
+
+  function startEngine(cfg){
+    // Initial seed
+    cfg.variables.forEach(seedVariable);
+
+    const interval = cfg.intervalMs || 1000;
+    setInterval(() => {
+      for (const v of cfg.variables){
+        const key = v.name.toUpperCase();
+        const entry = _store.get(key);
+        if (!entry) continue;
+
+        if (v.randomWalk){
+          entry.value = randomWalk(entry.value, v.randomWalk.min, v.randomWalk.max, v.randomWalk.step);
+        }
+        if (typeof v.decrement === 'number'){
+          entry.value = Math.max(0, entry.value - v.decrement);
+        }
+        if (v.cycle && Math.random() < (v.cycle.probability || 0)){
+          entry.value = (entry.value + 1) % (v.cycle.count || 1);
+        }
+        if (v.derivedFrom){
+          const baseEntry = _store.get(v.derivedFrom.toUpperCase());
+          if (baseEntry){
+            if (v.formula){
+              entry.value = evaluateFormula(v.formula, { base: baseEntry.value, value: entry.value });
+            } else {
+              entry.value = baseEntry.value;
+            }
+          }
+        }
+      }
+    }, interval);
+  }
+
+  loadConfig().then(cfg => {
+    startEngine(cfg);
+    console.info('[SimVarEmu] Loaded config with', cfg.variables.length, 'variables');
+  });
 
   // Registration mimics returning an integer id; we just map to the key.
   SimVar.GetRegisteredId = function(name, unit /*ignored*/, source /*ignored*/){
@@ -117,5 +167,5 @@
     console.table(obj);
   };
 
-  console.info('[SimVarEmu] Initialized (subset). Registered keys:', Array.from(_store.keys()));
+  console.info('[SimVarEmu] Initialized (config pending)...');
 })(window);
