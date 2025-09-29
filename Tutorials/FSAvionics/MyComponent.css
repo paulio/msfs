@@ -58,8 +58,7 @@
 }
 
 .fuel-radial .ring-fuel {
-  fill: none;
-  stroke: #00eaff; /* overwritten dynamically */
+  fill: none;  
   stroke-width: 13; /* match track */
   stroke-linecap: round;
   filter: drop-shadow(0 0 6px #00eaff) drop-shadow(0 0 18px rgba(0,140,255,0.45));
